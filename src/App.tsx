@@ -493,9 +493,9 @@ export default function RailRefundPremium() {
   const showBottomNav = ['home', 'scan', 'claims', 'profile'].includes(currentScreen);
 
   return (
-    <div className="bg-[#0A0D12] min-h-[100dvh] font-sans flex flex-col justify-center items-center">
+    <div className="bg-[#0A0D12] h-full w-full font-sans flex flex-col justify-center items-center overflow-hidden">
       {/* App Container - Responsive */}
-      <div className="relative w-full max-w-md h-[100dvh] bg-[#0A0D12] flex flex-col overflow-hidden shadow-2xl">
+      <div className="relative w-full max-w-md h-full bg-[#0A0D12] flex flex-col overflow-hidden shadow-2xl">
         
         {/* মেইন কন্টেন্ট এরিয়া */}
         <div className="flex-1 overflow-y-auto no-scrollbar relative z-10 h-full">
