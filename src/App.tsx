@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Home, ScanLine, Clock, User, PlusCircle, Train, 
   CheckCircle, ShieldCheck, CreditCard, ChevronRight, 
