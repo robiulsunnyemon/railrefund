@@ -316,9 +316,11 @@ export default function RailRefundPremium() {
           <p className="text-xs text-slate-400 font-mono tracking-wider">WELCOME BACK</p>
           <h1 className="text-2xl font-bold text-white font-display">Fahim</h1>
         </div>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#E3000F] to-[#FF4D4D] flex items-center justify-center shadow-[0_0_15px_rgba(227,0,15,0.4)]">
-          <span className="font-bold text-white">RR</span>
-        </div>
+        <img 
+          src={`${import.meta.env.BASE_URL}logo.png`} 
+          alt="Profile" 
+          className="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(227,0,15,0.4)] object-cover" 
+        />
       </div>
       
       {/* ব্যালেন্স কার্ড */}
