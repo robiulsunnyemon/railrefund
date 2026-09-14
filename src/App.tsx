@@ -33,9 +33,11 @@ export default function RailRefundPremium() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#E3000F] rounded-full blur-[120px] opacity-20"></div>
       
       <div className="relative z-10 flex flex-col items-center">
-        <div className="w-20 h-20 rounded-[24px] bg-gradient-to-tr from-[#E3000F] to-[#FF4D4D] flex items-center justify-center shadow-[0_0_40px_rgba(227,0,15,0.6)] mb-6 animate-pulse">
-          <span className="font-extrabold text-white text-3xl font-display tracking-tighter">RR</span>
-        </div>
+        <img 
+          src={`${import.meta.env.BASE_URL}logo.png`} 
+          alt="RefundBoy Logo" 
+          className="w-24 h-24 rounded-3xl shadow-[0_0_40px_rgba(227,0,15,0.6)] mb-6 animate-pulse object-cover" 
+        />
         <h1 className="text-3xl font-black text-white font-display tracking-tight mb-2">RefundBoy</h1>
         <p className="text-[10px] text-[#00E5FF] font-mono tracking-[0.3em] uppercase">Enterprise Edition</p>
       </div>
