@@ -36,7 +36,7 @@ export default function RailRefundPremium() {
         <div className="w-20 h-20 rounded-[24px] bg-gradient-to-tr from-[#E3000F] to-[#FF4D4D] flex items-center justify-center shadow-[0_0_40px_rgba(227,0,15,0.6)] mb-6 animate-pulse">
           <span className="font-extrabold text-white text-3xl font-display tracking-tighter">RR</span>
         </div>
-        <h1 className="text-3xl font-black text-white font-display tracking-tight mb-2">RailRefund</h1>
+        <h1 className="text-3xl font-black text-white font-display tracking-tight mb-2">RefundBoy</h1>
         <p className="text-[10px] text-[#00E5FF] font-mono tracking-[0.3em] uppercase">Enterprise Edition</p>
       </div>
 
@@ -213,7 +213,7 @@ export default function RailRefundPremium() {
           {agreed && <Check size={14} className="text-white" />}
         </button>
         <p className="text-xs text-slate-400 leading-relaxed">
-          I authorize RailRefund to file claims on my behalf and submit this IBAN to Deutsche Bahn for direct payouts. I agree to the <span className="text-white underline">Terms of Service</span>.
+          I authorize RefundBoy to file claims on my behalf and submit this IBAN to Deutsche Bahn for direct payouts. I agree to the <span className="text-white underline">Terms of Service</span>.
         </p>
       </div>
       

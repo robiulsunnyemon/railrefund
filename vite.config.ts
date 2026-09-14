@@ -15,8 +15,8 @@ export default defineConfig({
         enabled: true
       },
       manifest: {
-        name: 'RailRefund Premium',
-        short_name: 'RailRefund',
+        name: 'RefundBoy Premium',
+        short_name: 'RefundBoy',
         description: 'Never lose money on late DB trains.',
         theme_color: '#0A0D12',
         background_color: '#0A0D12',
