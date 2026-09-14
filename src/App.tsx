@@ -343,8 +343,8 @@ export default function RailRefundPremium() {
         </div>
         
         {/* ব্যালেন্স কার্ড */}
-        <div className="relative overflow-hidden bg-[#131921] border border-slate-700/80 rounded-[28px] p-7 shadow-2xl mb-6 group hover:border-[#E3000F]/50 transition-colors">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#E3000F] rounded-full blur-[70px] opacity-20 group-hover:opacity-40 transition-opacity"></div>
+        <div className="relative overflow-hidden bg-[#131921] border border-[#E3000F]/50 rounded-[28px] p-7 shadow-[0_0_30px_rgba(227,0,15,0.1)] mb-6">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#E3000F] rounded-full blur-[70px] opacity-40"></div>
           <div className="relative z-10">
             <p className="text-slate-400 text-xs font-mono font-bold mb-2 uppercase tracking-widest flex items-center">
               <ShieldCheck size={14} className="mr-2 text-[#E3000F]" />
