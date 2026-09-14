@@ -189,8 +189,24 @@ export default function RailRefundPremium() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
-      console.log("Firebase ID Token:", idToken);
-      // In the next step, we will send this token to FastAPI backend
+      console.log("Firebase ID Token generated.");
+      
+      // Send token to FastAPI backend
+      const response = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to authenticate with backend');
+      }
+
+      const data = await response.json();
+      console.log("Backend login success:", data);
+
       navigate('paywall');
     } catch (error) {
       console.error("Google Login failed", error);
