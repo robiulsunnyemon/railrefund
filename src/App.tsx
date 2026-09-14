@@ -192,7 +192,7 @@ export default function RailRefundPremium() {
       console.log("Firebase ID Token generated.");
       
       // Send token to FastAPI backend
-      const response = await fetch('http://localhost:8000/api/auth/login', {
+      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
