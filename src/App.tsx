@@ -502,7 +502,7 @@ export default function RailRefundPremium() {
 
         {/* বটম নেভিগেশন বার */}
         {showBottomNav && (
-          <div className="absolute bottom-0 left-0 w-full bg-[#131921]/95 backdrop-blur-3xl border-t border-slate-800 px-8 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex justify-between items-center z-50">
+          <div className="absolute bottom-0 left-0 w-full bg-[#131921]/95 backdrop-blur-3xl border-t border-slate-800 px-8 pt-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] flex justify-between items-center z-50">
             {[
               { id: 'home', icon: Home, label: 'HUB' },
               { id: 'scan', icon: ScanLine, label: 'SCAN' },
@@ -516,8 +516,8 @@ export default function RailRefundPremium() {
                   onClick={() => navigate(tab.id)} 
                   className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'text-[#E3000F]' : 'text-slate-500 hover:text-slate-300'}`}
                 >
-                  <tab.icon size={24} className={`mb-1 ${isActive ? 'drop-shadow-[0_0_8px_rgba(227,0,15,0.5)]' : ''}`} />
-                  <span className={`text-[10px] font-mono tracking-widest ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
+                  <tab.icon size={20} className={`mb-1 ${isActive ? 'drop-shadow-[0_0_8px_rgba(227,0,15,0.5)]' : ''}`} />
+                  <span className={`text-[9px] font-mono tracking-widest ${isActive ? 'font-bold' : 'font-medium'}`}>{tab.label}</span>
                 </button>
               )
             })}
