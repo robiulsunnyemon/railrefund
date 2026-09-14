@@ -4,6 +4,8 @@ import {
   CheckCircle, ShieldCheck, CreditCard, ChevronRight, 
   ArrowLeft, ArrowRight, Zap, Smartphone, FileText, Mail, Check, Loader2
 } from 'lucide-react';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from './firebase';
 
 export default function RailRefundPremium() {
   const [currentScreen, setCurrentScreen] = useState('splash');
@@ -54,17 +56,59 @@ export default function RailRefundPremium() {
     {
       title: "Never lose money on late DB trains.",
       desc: "Upload your ticket. We track the train and automatically file refund claims if it's delayed by 60+ minutes.",
-      icon: Train
+      svg: (
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-28 h-28">
+          <rect width="120" height="120" rx="30" fill="url(#grad1)"/>
+          <path d="M40 70L80 70" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+          <rect x="45" y="40" width="30" height="25" rx="5" fill="white" fillOpacity="0.9"/>
+          <circle cx="50" cy="70" r="8" fill="#181E29" stroke="white" strokeWidth="3"/>
+          <circle cx="70" cy="70" r="8" fill="#181E29" stroke="white" strokeWidth="3"/>
+          <path d="M50 50H70" stroke="#E3000F" strokeWidth="3" strokeLinecap="round"/>
+          <defs>
+            <linearGradient id="grad1" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#E3000F" />
+              <stop offset="1" stopColor="#FF4D4D" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
     },
     {
       title: "Upload once, we track forever.",
       desc: "Our AI monitors DB's live systems. We know exactly when your train is delayed without you doing anything.",
-      icon: Clock
+      svg: (
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-28 h-28">
+          <rect width="120" height="120" rx="30" fill="url(#grad2)"/>
+          <circle cx="60" cy="60" r="30" stroke="white" strokeOpacity="0.2" strokeWidth="6"/>
+          <circle cx="60" cy="60" r="30" stroke="white" strokeWidth="6" strokeDasharray="60 140" strokeLinecap="round"/>
+          <path d="M60 45V60L70 70" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+          <defs>
+            <linearGradient id="grad2" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00E5FF" />
+              <stop offset="1" stopColor="#0088CC" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
     },
     {
       title: "Payouts directly to your Bank.",
       desc: "We submit claims to DB with your IBAN. 100% of the refund goes straight to you with zero commission fees.",
-      icon: CreditCard
+      svg: (
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-28 h-28">
+          <rect width="120" height="120" rx="30" fill="url(#grad3)"/>
+          <rect x="35" y="45" width="50" height="35" rx="8" fill="white" fillOpacity="0.9"/>
+          <path d="M35 55H85" stroke="#181E29" strokeWidth="4"/>
+          <circle cx="60" cy="35" r="8" fill="#FFD700" stroke="white" strokeWidth="2"/>
+          <path d="M60 30V40M55 35H65" stroke="#B8860B" strokeWidth="2" strokeLinecap="round"/>
+          <defs>
+            <linearGradient id="grad3" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#00C853" />
+              <stop offset="1" stopColor="#69F0AE" />
+            </linearGradient>
+          </defs>
+        </svg>
+      )
     }
   ];
 
@@ -88,32 +132,38 @@ export default function RailRefundPremium() {
   // 1. Onboarding Screen
   const renderOnboarding = () => {
     const slide = onboardingSlides[onboardingStep];
-    const Icon = slide.icon;
 
     return (
-      <div className="p-6 h-full flex flex-col justify-between pb-10 relative">
-        <div className="mt-20 relative h-64">
-          {/* Key ensures React re-mounts the div to trigger the animate-fade-in class again */}
-          <div key={onboardingStep} className="animate-fade-in absolute w-full">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#E3000F] to-[#FF4D4D] flex items-center justify-center shadow-[0_0_20px_rgba(227,0,15,0.5)] mb-8">
-              <Icon className="text-white" size={32} />
+      <div className="p-6 h-full flex flex-col justify-between pb-10 relative overflow-hidden bg-[#0A0D12]">
+        {/* Animated Background */}
+        <div className="absolute top-0 right-0 w-72 h-72 bg-[#E3000F] rounded-full blur-[100px] opacity-20 mix-blend-screen animate-pulse"></div>
+        <div className="absolute bottom-10 left-10 w-64 h-64 bg-[#00E5FF] rounded-full blur-[100px] opacity-10 mix-blend-screen"></div>
+
+        <div className="mt-20 relative z-10 w-full flex flex-col items-center">
+          <div key={onboardingStep} className="animate-fade-in flex flex-col items-center text-center w-full">
+            {/* 3D SVG Container */}
+            <div className="mb-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[30px] transform transition-transform hover:scale-105">
+              {slide.svg}
             </div>
-            <h1 className="text-4xl font-extrabold text-white mb-4 tracking-tight leading-tight">{slide.title}</h1>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              {slide.desc}
-            </p>
+            
+            {/* Glassmorphism Card */}
+            <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] p-8 rounded-[32px] shadow-2xl w-full">
+              <h1 className="text-3xl font-extrabold text-white mb-4 tracking-tight leading-tight">{slide.title}</h1>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                {slide.desc}
+              </p>
+            </div>
           </div>
         </div>
         
-        <div className="mt-auto mb-10 flex flex-col items-center">
-          {/* Pagination Dots */}
-          <div className="flex justify-center space-x-2 mb-8">
+        <div className="mt-auto mb-6 flex flex-col items-center relative z-10 w-full">
+          {/* Continuous Progress Bar */}
+          <div className="w-full bg-slate-800 h-1.5 rounded-full mb-8 overflow-hidden flex shadow-inner">
             {onboardingSlides.map((_, i) => (
-              <button 
+              <div 
                 key={i} 
-                onClick={() => setOnboardingStep(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === onboardingStep ? 'w-6 bg-[#E3000F]' : 'w-1.5 bg-slate-700'}`}
-              ></button>
+                className={`h-full flex-1 transition-all duration-500 ease-out ${i <= onboardingStep ? 'bg-[#E3000F]' : 'bg-transparent'} ${i !== onboardingSlides.length - 1 ? 'border-r border-slate-900' : ''}`}
+              ></div>
             ))}
           </div>
 
@@ -125,9 +175,9 @@ export default function RailRefundPremium() {
                 navigate('auth');
               }
             }}
-            className="w-full bg-white text-[#0A0D12] hover:bg-slate-200 font-bold py-4 rounded-2xl flex justify-center items-center transition-all shadow-[0_5px_15px_rgba(255,255,255,0.1)]"
+            className="w-full bg-gradient-to-r from-[#E3000F] to-[#FF4D4D] text-white font-bold py-4 rounded-2xl flex justify-center items-center transition-all shadow-[0_10px_30px_rgba(227,0,15,0.4)] hover:shadow-[0_10px_40px_rgba(227,0,15,0.6)] hover:scale-[1.02] active:scale-[0.98]"
           >
-            {onboardingStep < onboardingSlides.length - 1 ? 'NEXT' : 'GET STARTED'} <ArrowRight className="ml-2" size={18} />
+            {onboardingStep < onboardingSlides.length - 1 ? 'CONTINUE' : 'GET STARTED'} <ArrowRight className="ml-2" size={18} />
           </button>
         </div>
       </div>
@@ -135,6 +185,18 @@ export default function RailRefundPremium() {
   };
 
   // 2. Authentication Screen
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      console.log("Firebase ID Token:", idToken);
+      // In the next step, we will send this token to FastAPI backend
+      navigate('paywall');
+    } catch (error) {
+      console.error("Google Login failed", error);
+    }
+  };
+
   const renderAuth = () => (
     <div className="p-6 h-full flex flex-col animate-fade-in pb-10 overflow-y-auto no-scrollbar">
       <button onClick={() => navigate('onboarding')} className="text-slate-400 mb-10 mt-4">
@@ -144,24 +206,13 @@ export default function RailRefundPremium() {
       <h2 className="text-2xl font-bold text-white mb-8 font-display">Create Account</h2>
       
       <div className="space-y-4 mb-8">
-        <button onClick={() => navigate('paywall')} className="w-full bg-[#181E29] border border-slate-700 text-white font-bold py-4 rounded-2xl flex justify-center items-center hover:bg-[#131921] transition-all">
-          <Smartphone className="mr-2" size={20} /> Continue with Apple
+        <button onClick={() => navigate('paywall')} className="w-full bg-[#E3000F] text-white font-bold py-4 rounded-2xl flex justify-center items-center hover:bg-[#FF3333] transition-all shadow-[0_5px_20px_rgba(227,0,15,0.3)]">
+          <img src={`${import.meta.env.BASE_URL}apple-logo.png`} alt="Apple" className="w-5 h-5 mr-2" /> Continue with Apple
         </button>
-        <button onClick={() => navigate('paywall')} className="w-full bg-[#181E29] border border-slate-700 text-white font-bold py-4 rounded-2xl flex justify-center items-center hover:bg-[#131921] transition-all">
-          <Mail className="mr-2" size={20} /> Continue with Google
+        <button onClick={handleGoogleLogin} className="w-full bg-[#181E29] border border-slate-700 text-white font-bold py-4 rounded-2xl flex justify-center items-center hover:bg-[#131921] transition-all">
+          <img src={`${import.meta.env.BASE_URL}google-logo.png`} alt="Google" className="w-5 h-5 mr-2" /> Continue with Google
         </button>
       </div>
-      
-      <div className="flex items-center justify-center space-x-4 mb-8">
-        <div className="h-px bg-slate-800 flex-1"></div>
-        <span className="text-slate-500 text-xs font-mono">OR EMAIL</span>
-        <div className="h-px bg-slate-800 flex-1"></div>
-      </div>
-      
-      <input type="email" placeholder="Email Address" className="w-full bg-[#0A0D12] border border-slate-700 text-white p-4 rounded-xl mb-4 outline-none focus:border-[#E3000F] transition-colors" />
-      <button onClick={() => navigate('paywall')} className="w-full bg-[#E3000F] text-white font-bold py-4 rounded-xl shadow-[0_5px_20px_rgba(227,0,15,0.3)] hover:bg-[#FF3333] transition-all">
-        Continue with Email
-      </button>
     </div>
   );
 
