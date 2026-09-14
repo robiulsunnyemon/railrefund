@@ -1,13 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, select, SQLModel
-from database import engine, get_session
-import models
 from auth import verify_firebase_token
+from firebase_admin import firestore
 from pydantic import BaseModel
-
-# Create database tables
-SQLModel.metadata.create_all(engine)
+from typing import List, Optional
 
 app = FastAPI(title="RefundBoy API")
 
@@ -20,15 +16,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize Firestore
+db = firestore.client()
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    full_name: Optional[str] = None
+    profile_pic: Optional[str] = None
+
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to RefundBoy Backend"}
+    return {"message": "Welcome to RefundBoy Backend (Firestore Edition)"}
 
 @app.post("/api/auth/login")
-def login_user(decoded_token: dict = Depends(verify_firebase_token), db: Session = Depends(get_session)):
+def login_user(decoded_token: dict = Depends(verify_firebase_token)):
     """
     Called by frontend after successful Firebase login.
-    Verifies token, then creates or fetches the user in the PostgreSQL database.
+    Verifies token, then creates or fetches the user in Firestore.
     """
     uid = decoded_token.get("uid")
     email = decoded_token.get("email")
@@ -38,45 +43,38 @@ def login_user(decoded_token: dict = Depends(verify_firebase_token), db: Session
     if not uid:
         raise HTTPException(status_code=400, detail="Token missing UID")
 
-    # Check if user exists using SQLModel select
-    statement = select(models.User).where(models.User.firebase_uid == uid)
-    user = db.exec(statement).first()
+    user_ref = db.collection("users").document(uid)
+    user_doc = user_ref.get()
 
-    if not user:
-        # Create new user
-        user = models.User(
-            firebase_uid=uid,
-            email=email,
-            full_name=name,
-            profile_pic=picture
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    if not user_doc.exists:
+        # Create new user in Firestore
+        user_data = {
+            "id": uid,
+            "email": email,
+            "full_name": name,
+            "profile_pic": picture,
+            "balance": 0.0
+        }
+        user_ref.set(user_data)
+    else:
+        user_data = user_doc.to_dict()
 
     return {
         "message": "Login successful",
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            "full_name": user.full_name,
-            "profile_pic": user.profile_pic
-        }
+        "user": user_data
     }
 
-from typing import List, Optional
-
-class UserResponse(BaseModel):
-    id: int
-    email: str
-    full_name: Optional[str] = None
-    profile_pic: Optional[str] = None
-
 @app.get("/api/users", response_model=List[UserResponse])
-def get_all_users(db: Session = Depends(get_session)):
+def get_all_users():
     """
-    Returns a list of all registered users.
+    Returns a list of all registered users from Firestore.
     """
-    statement = select(models.User)
-    users = db.exec(statement).all()
+    users_ref = db.collection("users")
+    docs = users_ref.stream()
+    
+    users = []
+    for doc in docs:
+        data = doc.to_dict()
+        users.append(UserResponse(**data))
+        
     return users
