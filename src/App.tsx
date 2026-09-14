@@ -327,7 +327,7 @@ export default function RailRefundPremium() {
 
   // 6. Home / Hub Screen
   const renderHome = () => (
-    <div className="flex flex-col h-full pb-[80px] animate-fade-in">
+    <div className="flex flex-col h-full animate-fade-in">
       {/* Header */}
       <div className="p-6 pb-2 shrink-0">
         <div className="flex justify-between items-center mb-6 mt-2">
@@ -362,7 +362,7 @@ export default function RailRefundPremium() {
       </div>
       
       {/* Scrollable List */}
-      <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-4 pb-6">
+      <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-4 pb-28">
         {activeTrackings.map((item) => (
           <div 
             key={item.id}
@@ -413,7 +413,7 @@ export default function RailRefundPremium() {
   const renderClaims = () => {
     const filteredClaims = completedClaims.filter(c => claimFilter === 'ALL' || c.status === claimFilter);
     return (
-      <div className="flex flex-col h-full pb-[80px] animate-fade-in">
+      <div className="flex flex-col h-full animate-fade-in">
         <div className="p-6 pb-2 shrink-0">
           <h2 className="text-xl font-bold text-white mb-6 font-mono uppercase tracking-wider mt-4">Claim Registry</h2>
           
@@ -431,7 +431,7 @@ export default function RailRefundPremium() {
           </div>
         </div>
         
-        <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-3 pb-6">
+        <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-3 pb-28">
           {filteredClaims.map((claim) => (
             <div 
               key={claim.id}
