@@ -67,6 +67,23 @@ export default function RailRefundPremium() {
     }
   ];
 
+  const activeTrackings = Array.from({ length: 20 }).map((_, i) => ({
+    id: `active-${i}`,
+    train: `ICE ${700 + i}`,
+    route: i % 2 === 0 ? "Berlin - Munich" : "Hamburg - Frankfurt",
+    dep: `${10 + (i % 12)}:${i % 6}0`,
+    platform: (i % 10) + 1,
+    delay: 30 + (i * 5) % 90
+  }));
+
+  const completedClaims = Array.from({ length: 20 }).map((_, i) => ({
+    id: `claim-${i}`,
+    train: i % 3 === 0 ? `IC ${2000 + i}` : `ICE ${100 + i}`,
+    claimId: `#REF-${4490 + i}`,
+    amount: (15 + (i * 2.5) % 50).toFixed(2),
+    status: i % 4 === 0 ? "PROCESSING" : "SETTLED"
+  }));
+
   // 1. Onboarding Screen
   const renderOnboarding = () => {
     const slide = onboardingSlides[onboardingStep];
@@ -342,21 +359,28 @@ export default function RailRefundPremium() {
       </div>
       
       {/* ট্রেনের কার্ড (Clickable to Details) */}
-      <div 
-        onClick={() => navigate('ticket-details')}
-        className="bg-[#181E29] rounded-2xl p-4 border border-slate-800 shadow-lg flex items-center mb-4 cursor-pointer hover:border-slate-500 transition-colors"
-      >
-        <div className="bg-[#131921] p-3 rounded-xl border border-slate-700 mr-4">
-          <Train className="text-white" size={24} />
-        </div>
-        <div className="flex-1">
-          <h4 className="font-bold text-white text-sm">ICE 704 <span className="text-slate-500 font-normal">Berlin - Munich</span></h4>
-          <p className="text-xs text-slate-400 font-mono mt-1">DEP: 14:30 | PLATFORM 3</p>
-        </div>
-        <div className="text-right flex flex-col items-end">
-          <ChevronRight size={16} className="text-slate-500 mb-1" />
-          <span className="text-[10px] font-bold text-[#E3000F] bg-[#E3000F]/10 border border-[#E3000F]/20 px-2 py-0.5 rounded-md tracking-wider">+65m</span>
-        </div>
+      <div className="space-y-4">
+        {activeTrackings.map((item) => (
+          <div 
+            key={item.id}
+            onClick={() => navigate('ticket-details')}
+            className="bg-[#181E29] rounded-2xl p-4 border border-slate-800 shadow-lg flex items-center cursor-pointer hover:border-slate-500 transition-colors"
+          >
+            <div className="bg-[#131921] p-3 rounded-xl border border-slate-700 mr-4">
+              <Train className="text-white" size={24} />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-bold text-white text-sm">{item.train} <span className="text-slate-500 font-normal">{item.route}</span></h4>
+              <p className="text-xs text-slate-400 font-mono mt-1">DEP: {item.dep} | PLATFORM {item.platform}</p>
+            </div>
+            <div className="text-right flex flex-col items-end">
+              <ChevronRight size={16} className="text-slate-500 mb-1" />
+              <span className={`text-[10px] font-bold bg-[#E3000F]/10 border px-2 py-0.5 rounded-md tracking-wider ${item.delay >= 60 ? 'text-[#E3000F] border-[#E3000F]/20' : 'text-[#FF9900] border-[#FF9900]/20'}`}>
+                +{item.delay}m
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -388,35 +412,33 @@ export default function RailRefundPremium() {
       <h2 className="text-xl font-bold text-white mb-6 font-mono uppercase tracking-wider mt-4">Claim Registry</h2>
       
       <div className="space-y-3">
-        {/* সফল রিফান্ড */}
-        <div className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 flex items-center">
-          <div className="bg-green-500/10 p-2 rounded-lg border border-green-500/20 mr-4">
-            <CheckCircle className="text-green-500" size={20} />
+        {completedClaims.map((claim) => (
+          <div 
+            key={claim.id}
+            onClick={() => navigate('ticket-details')} 
+            className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 flex items-center cursor-pointer hover:border-slate-600 transition-colors"
+          >
+            <div className={`p-2 rounded-lg border mr-4 ${claim.status === 'SETTLED' ? 'bg-green-500/10 border-green-500/20' : 'bg-[#FF9900]/10 border-[#FF9900]/20'}`}>
+              {claim.status === 'SETTLED' ? (
+                <CheckCircle className="text-green-500" size={20} />
+              ) : (
+                <Clock className="text-[#FF9900]" size={20} />
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="font-bold text-white text-sm">{claim.train}</h4>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">CLAIM_ID: {claim.claimId}</p>
+            </div>
+            <div className="text-right">
+              <h4 className={`font-bold ${claim.status === 'SETTLED' ? 'text-green-400' : 'text-white'}`}>
+                {claim.status === 'SETTLED' ? '+' : ''} € {claim.amount}
+              </h4>
+              <p className={`text-[9px] font-mono mt-1 uppercase ${claim.status === 'SETTLED' ? 'text-slate-500' : 'text-[#FF9900]'}`}>
+                {claim.status}
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h4 className="font-bold text-white text-sm">ICE 109</h4>
-            <p className="text-[10px] text-slate-500 font-mono mt-1">CLAIM_ID: #REF-4492</p>
-          </div>
-          <div className="text-right">
-            <h4 className="font-bold text-green-400">+ € 35.00</h4>
-            <p className="text-[9px] text-slate-500 font-mono mt-1 uppercase">Settled</p>
-          </div>
-        </div>
-
-        {/* প্রসেসিং রিফান্ড */}
-        <div onClick={() => navigate('ticket-details')} className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 flex items-center cursor-pointer hover:border-slate-600 transition-colors">
-          <div className="bg-[#FF9900]/10 p-2 rounded-lg border border-[#FF9900]/20 mr-4">
-            <Clock className="text-[#FF9900]" size={20} />
-          </div>
-          <div className="flex-1">
-            <h4 className="font-bold text-white text-sm">IC 2024</h4>
-            <p className="text-[10px] text-slate-500 font-mono mt-1">60+ MINS LATE</p>
-          </div>
-          <div className="text-right">
-            <h4 className="font-bold text-white">€ 15.00</h4>
-            <p className="text-[9px] text-[#FF9900] font-mono mt-1 uppercase">Processing</p>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
