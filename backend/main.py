@@ -63,3 +63,20 @@ def login_user(decoded_token: dict = Depends(verify_firebase_token), db: Session
             "profile_pic": user.profile_pic
         }
     }
+
+from typing import List, Optional
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    full_name: Optional[str] = None
+    profile_pic: Optional[str] = None
+
+@app.get("/api/users", response_model=List[UserResponse])
+def get_all_users(db: Session = Depends(get_session)):
+    """
+    Returns a list of all registered users.
+    """
+    statement = select(models.User)
+    users = db.exec(statement).all()
+    return users
