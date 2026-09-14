@@ -7,9 +7,10 @@ import {
 
 export default function RailRefundPremium() {
   const [currentScreen, setCurrentScreen] = useState('splash');
-  const [iban, setIban] = useState('DE89 3704 0044 0532 0130 00');
-  const [agreed, setAgreed] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const [agreed, setAgreed] = useState(false);
+  const [iban, setIban] = useState('DE89 3704 0044 0532 0130 00');
+  const [claimFilter, setClaimFilter] = useState('ALL');
 
   // Auto redirect from splash to onboarding
   useEffect(() => {
@@ -135,7 +136,7 @@ export default function RailRefundPremium() {
 
   // 2. Authentication Screen
   const renderAuth = () => (
-    <div className="p-6 h-full flex flex-col animate-fade-in pb-10">
+    <div className="p-6 h-full flex flex-col animate-fade-in pb-10 overflow-y-auto no-scrollbar">
       <button onClick={() => navigate('onboarding')} className="text-slate-400 mb-10 mt-4">
         <ArrowLeft size={24} />
       </button>
@@ -166,7 +167,7 @@ export default function RailRefundPremium() {
 
   // 3. Paywall / Subscription Screen
   const renderPaywall = () => (
-    <div className="p-6 h-full flex flex-col animate-fade-in pb-10 relative overflow-hidden">
+    <div className="p-6 h-full flex flex-col animate-fade-in pb-10 relative overflow-x-hidden overflow-y-auto no-scrollbar">
       <div className="absolute top-0 right-0 w-64 h-64 bg-[#E3000F] rounded-full blur-[100px] opacity-20"></div>
       
       <button onClick={() => navigate('auth')} className="text-slate-400 mb-8 mt-4 relative z-10">
@@ -206,7 +207,7 @@ export default function RailRefundPremium() {
 
   // 4. IBAN Setup & Legal
   const renderIbanSetup = () => (
-    <div className="p-6 h-full flex flex-col animate-fade-in pb-10">
+    <div className="p-6 h-full flex flex-col animate-fade-in pb-10 overflow-y-auto no-scrollbar">
       <button onClick={() => navigate('paywall')} className="text-slate-400 mb-8 mt-4">
         <ArrowLeft size={24} />
       </button>
@@ -324,58 +325,60 @@ export default function RailRefundPremium() {
     </div>
   );
 
-  // 6. Home / Hub Screen (Existing, Updated navigation)
+  // 6. Home / Hub Screen
   const renderHome = () => (
-    <div className="p-6 animate-fade-in pb-24">
+    <div className="flex flex-col h-full pb-[80px] animate-fade-in">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8 mt-2">
-        <div>
-          <p className="text-xs text-slate-400 font-mono tracking-wider">WELCOME BACK</p>
-          <h1 className="text-2xl font-bold text-white font-display">Fahim</h1>
+      <div className="p-6 pb-2 shrink-0">
+        <div className="flex justify-between items-center mb-6 mt-2">
+          <div>
+            <p className="text-xs text-slate-400 font-mono tracking-wider">WELCOME BACK</p>
+            <h1 className="text-2xl font-bold text-white font-display">Fahim</h1>
+          </div>
+          <img 
+            src={`${import.meta.env.BASE_URL}logo.png`} 
+            alt="Profile" 
+            className="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(227,0,15,0.4)] object-cover" 
+          />
         </div>
-        <img 
-          src={`${import.meta.env.BASE_URL}logo.png`} 
-          alt="Profile" 
-          className="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(227,0,15,0.4)] object-cover" 
-        />
-      </div>
-      
-      {/* ব্যালেন্স কার্ড */}
-      <div className="relative overflow-hidden bg-[#131921] border border-slate-700/80 rounded-[28px] p-7 shadow-2xl mb-8 group hover:border-[#E3000F]/50 transition-colors">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#E3000F] rounded-full blur-[70px] opacity-20 group-hover:opacity-40 transition-opacity"></div>
-        <div className="relative z-10">
-          <p className="text-slate-400 text-xs font-mono font-bold mb-2 uppercase tracking-widest flex items-center">
-            <ShieldCheck size={14} className="mr-2 text-[#E3000F]" />
-            Total Recovered
-          </p>
-          <h2 className="text-5xl font-extrabold text-white mb-2 tracking-tight">€ 145<span className="text-slate-500 text-3xl">.50</span></h2>
-          <p className="text-[10px] text-slate-500 font-mono">ALL PAYMENTS DIRECT TO YOUR IBAN</p>
+        
+        {/* ব্যালেন্স কার্ড */}
+        <div className="relative overflow-hidden bg-[#131921] border border-slate-700/80 rounded-[28px] p-7 shadow-2xl mb-6 group hover:border-[#E3000F]/50 transition-colors">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#E3000F] rounded-full blur-[70px] opacity-20 group-hover:opacity-40 transition-opacity"></div>
+          <div className="relative z-10">
+            <p className="text-slate-400 text-xs font-mono font-bold mb-2 uppercase tracking-widest flex items-center">
+              <ShieldCheck size={14} className="mr-2 text-[#E3000F]" />
+              Total Recovered
+            </p>
+            <h2 className="text-5xl font-extrabold text-white mb-2 tracking-tight">€ 145<span className="text-slate-500 text-3xl">.50</span></h2>
+            <p className="text-[10px] text-slate-500 font-mono">ALL PAYMENTS DIRECT TO YOUR IBAN</p>
+          </div>
         </div>
-      </div>
 
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="text-sm font-bold text-slate-300 font-mono tracking-wider uppercase">Active Tracking</h3>
-        <span className="text-[10px] bg-[#E3000F]/20 text-[#E3000F] border border-[#E3000F]/30 px-2 py-0.5 rounded uppercase font-mono font-bold animate-pulse">Live</span>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-slate-300 font-mono tracking-wider uppercase">Active Tracking</h3>
+          <span className="text-[10px] bg-[#E3000F]/20 text-[#E3000F] border border-[#E3000F]/30 px-2 py-0.5 rounded uppercase font-mono font-bold animate-pulse">Live</span>
+        </div>
       </div>
       
-      {/* ট্রেনের কার্ড (Clickable to Details) */}
-      <div className="space-y-4">
+      {/* Scrollable List */}
+      <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-4 pb-6">
         {activeTrackings.map((item) => (
           <div 
             key={item.id}
             onClick={() => navigate('ticket-details')}
             className="bg-[#181E29] rounded-2xl p-4 border border-slate-800 shadow-lg flex items-center cursor-pointer hover:border-slate-500 transition-colors"
           >
-            <div className="bg-[#131921] p-3 rounded-xl border border-slate-700 mr-4">
+            <div className="bg-[#131921] p-3 rounded-xl border border-slate-700 mr-4 shrink-0">
               <Train className="text-white" size={24} />
             </div>
-            <div className="flex-1">
-              <h4 className="font-bold text-white text-sm">{item.train} <span className="text-slate-500 font-normal">{item.route}</span></h4>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-white text-sm truncate">{item.train} <span className="text-slate-500 font-normal">{item.route}</span></h4>
               <p className="text-xs text-slate-400 font-mono mt-1">DEP: {item.dep} | PLATFORM {item.platform}</p>
             </div>
-            <div className="text-right flex flex-col items-end">
+            <div className="text-right flex flex-col items-end shrink-0 ml-2">
               <ChevronRight size={16} className="text-slate-500 mb-1" />
-              <span className={`text-[10px] font-bold bg-[#E3000F]/10 border px-2 py-0.5 rounded-md tracking-wider ${item.delay >= 60 ? 'text-[#E3000F] border-[#E3000F]/20' : 'text-[#FF9900] border-[#FF9900]/20'}`}>
+              <span className={`text-[10px] font-bold border px-2 py-0.5 rounded-md tracking-wider ${item.delay >= 60 ? 'text-[#E3000F] border-[#E3000F]/20 bg-[#E3000F]/10' : 'text-[#FF9900] border-[#FF9900]/20 bg-[#FF9900]/10'}`}>
                 +{item.delay}m
               </span>
             </div>
@@ -387,7 +390,7 @@ export default function RailRefundPremium() {
 
   // 7. Scan/Upload Screen
   const renderScan = () => (
-    <div className="p-6 h-full flex flex-col justify-center items-center animate-fade-in text-center pb-24">
+    <div className="p-6 h-full flex flex-col justify-center items-center animate-fade-in text-center pb-24 overflow-y-auto no-scrollbar">
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-[#E3000F] blur-[50px] opacity-20 rounded-full"></div>
         <div className="relative bg-[#131921] border border-slate-700 w-28 h-28 rounded-[2rem] flex items-center justify-center shadow-xl">
@@ -407,45 +410,63 @@ export default function RailRefundPremium() {
   );
 
   // 8. Claims History
-  const renderClaims = () => (
-    <div className="p-6 animate-fade-in pb-24">
-      <h2 className="text-xl font-bold text-white mb-6 font-mono uppercase tracking-wider mt-4">Claim Registry</h2>
-      
-      <div className="space-y-3">
-        {completedClaims.map((claim) => (
-          <div 
-            key={claim.id}
-            onClick={() => navigate('ticket-details')} 
-            className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 flex items-center cursor-pointer hover:border-slate-600 transition-colors"
-          >
-            <div className={`p-2 rounded-lg border mr-4 ${claim.status === 'SETTLED' ? 'bg-green-500/10 border-green-500/20' : 'bg-[#FF9900]/10 border-[#FF9900]/20'}`}>
-              {claim.status === 'SETTLED' ? (
-                <CheckCircle className="text-green-500" size={20} />
-              ) : (
-                <Clock className="text-[#FF9900]" size={20} />
-              )}
-            </div>
-            <div className="flex-1">
-              <h4 className="font-bold text-white text-sm">{claim.train}</h4>
-              <p className="text-[10px] text-slate-500 font-mono mt-1">CLAIM_ID: {claim.claimId}</p>
-            </div>
-            <div className="text-right">
-              <h4 className={`font-bold ${claim.status === 'SETTLED' ? 'text-green-400' : 'text-white'}`}>
-                {claim.status === 'SETTLED' ? '+' : ''} € {claim.amount}
-              </h4>
-              <p className={`text-[9px] font-mono mt-1 uppercase ${claim.status === 'SETTLED' ? 'text-slate-500' : 'text-[#FF9900]'}`}>
-                {claim.status}
-              </p>
-            </div>
+  const renderClaims = () => {
+    const filteredClaims = completedClaims.filter(c => claimFilter === 'ALL' || c.status === claimFilter);
+    return (
+      <div className="flex flex-col h-full pb-[80px] animate-fade-in">
+        <div className="p-6 pb-2 shrink-0">
+          <h2 className="text-xl font-bold text-white mb-6 font-mono uppercase tracking-wider mt-4">Claim Registry</h2>
+          
+          {/* Filtering System */}
+          <div className="flex space-x-2 mb-2">
+            {['ALL', 'PROCESSING', 'SETTLED'].map(filterOption => (
+              <button 
+                key={filterOption}
+                onClick={() => setClaimFilter(filterOption)}
+                className={`px-3 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-wider transition-colors ${claimFilter === filterOption ? 'bg-[#E3000F] text-white shadow-[0_0_10px_rgba(227,0,15,0.4)]' : 'bg-[#181E29] text-slate-400 border border-slate-800 hover:border-slate-600'}`}
+              >
+                {filterOption}
+              </button>
+            ))}
           </div>
-        ))}
+        </div>
+        
+        <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-3 pb-6">
+          {filteredClaims.map((claim) => (
+            <div 
+              key={claim.id}
+              onClick={() => navigate('ticket-details')} 
+              className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 flex items-center cursor-pointer hover:border-slate-600 transition-colors"
+            >
+              <div className={`p-2 rounded-lg border mr-4 shrink-0 ${claim.status === 'SETTLED' ? 'bg-green-500/10 border-green-500/20' : 'bg-[#FF9900]/10 border-[#FF9900]/20'}`}>
+                {claim.status === 'SETTLED' ? (
+                  <CheckCircle className="text-green-500" size={20} />
+                ) : (
+                  <Clock className="text-[#FF9900]" size={20} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-white text-sm truncate">{claim.train}</h4>
+                <p className="text-[10px] text-slate-500 font-mono mt-1">CLAIM: {claim.claimId}</p>
+              </div>
+              <div className="text-right shrink-0 ml-2">
+                <h4 className={`font-bold ${claim.status === 'SETTLED' ? 'text-green-400' : 'text-white'}`}>
+                  {claim.status === 'SETTLED' ? '+' : ''} € {claim.amount}
+                </h4>
+                <p className={`text-[9px] font-mono mt-1 uppercase ${claim.status === 'SETTLED' ? 'text-slate-500' : 'text-[#FF9900]'}`}>
+                  {claim.status}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // 9. Profile Screen
   const renderProfile = () => (
-    <div className="p-6 animate-fade-in pb-24">
+    <div className="p-6 pb-24 h-full overflow-y-auto no-scrollbar animate-fade-in">
       <h2 className="text-xl font-bold text-white mb-6 font-mono uppercase tracking-wider mt-4">System Config</h2>
       
       {/* সাবস্ক্রিপশন স্ট্যাটাস */}
@@ -520,7 +541,7 @@ export default function RailRefundPremium() {
       <div className="relative w-full max-w-md h-full bg-[#0A0D12] flex flex-col overflow-hidden shadow-2xl">
         
         {/* মেইন কন্টেন্ট এরিয়া */}
-        <div className="flex-1 overflow-y-auto no-scrollbar relative z-10 h-full">
+        <div className="flex-1 relative z-10 h-full flex flex-col overflow-hidden">
           {renderCurrentScreen()}
         </div>
 
