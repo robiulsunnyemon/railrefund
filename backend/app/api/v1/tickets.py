@@ -49,40 +49,6 @@ async def scan_ticket(
     
     return new_ticket
 
-@router.post("/", response_model=TicketResponse)
-def create_ticket(ticket_data: TicketCreate, decoded_token: dict = Depends(verify_firebase_token)):
-    """
-    Takes a PNR/Booking Code, "finds" the ticket information (mocked),
-    and saves it to the Firestore database under the current user.
-    """
-    uid = decoded_token.get("uid")
-    db = get_db()
-    
-    # === MOCKING THE DB API FETCH ===
-    # In a real-world scenario, you would call Deutsche Bahn's API here 
-    # to fetch real details using `ticket_data.pnr`
-    
-    ticket_id = str(uuid.uuid4())
-    
-    new_ticket = {
-        "id": ticket_id,
-        "user_id": uid,
-        "pnr": ticket_data.pnr.upper(),
-        "train_no": "ICE 1004",  # Mocked
-        "date": "15.09.2026",
-        "departure_station": "Berlin Hbf",  # Mocked
-        "arrival_station": "München Hbf",  # Mocked
-        "departure_time": "10:30",
-        "arrival_time": "14:45",
-        "status": "TRACKING", # Initial status
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Save to Firestore in a 'tickets' collection
-    db.collection("tickets").document(ticket_id).set(new_ticket)
-    
-    return new_ticket
-    
 @router.get("/", response_model=list[TicketResponse])
 def get_user_tickets(decoded_token: dict = Depends(verify_firebase_token)):
     """

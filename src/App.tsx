@@ -1,11 +1,7 @@
-import { useState, useEffect } from 'react';
-import { 
-  Home, ScanLine, Clock, User, PlusCircle, Train, 
-  CheckCircle, ShieldCheck, CreditCard, ChevronRight, 
-  ArrowLeft, ArrowRight, Zap, Smartphone, FileText, Mail, Check, Loader2
-} from 'lucide-react';
-import { signInWithPopup } from 'firebase/auth';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, MapPin, Navigation, History, ShieldCheck, Euro, Zap, Sparkles, Check, ArrowLeft, Menu, PlusCircle, Train, ScanLine, Ticket, CreditCard, ChevronRight, CheckCircle2, Clock, Map, Phone } from 'lucide-react';
 import { auth, googleProvider } from './firebase';
+import { signInWithPopup } from 'firebase/auth';
 
 export default function RailRefundPremium() {
   const [currentScreen, setCurrentScreen] = useState('splash');
@@ -14,6 +10,8 @@ export default function RailRefundPremium() {
   const [agreed, setAgreed] = useState(false);
   const [claimFilter, setClaimFilter] = useState('ALL');
   const [userData, setUserData] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Auto redirect from splash to onboarding
   useEffect(() => {
@@ -505,8 +503,40 @@ export default function RailRefundPremium() {
   );
 
   // 7. Scan/Upload Screen
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('http://localhost:8000/api/v1/tickets/scan', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: formData
+      });
+      
+      if (response.ok) {
+        navigate('home');
+      } else {
+        alert("Failed to scan ticket. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading ticket.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const renderScan = () => (
-    <div className="p-6 h-full flex flex-col justify-center items-center animate-fade-in text-center pb-24 overflow-y-auto no-scrollbar">
+    <div className="p-6 h-full flex flex-col items-center justify-center animate-fade-in relative">
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-[#E3000F] blur-[50px] opacity-20 rounded-full"></div>
         <div className="relative bg-[#131921] border border-slate-700 w-28 h-28 rounded-[2rem] flex items-center justify-center shadow-xl">
@@ -514,12 +544,28 @@ export default function RailRefundPremium() {
         </div>
       </div>
       <h2 className="text-2xl font-bold text-white mb-2 font-display">Scan DB Ticket</h2>
-      <p className="text-slate-400 mb-10 max-w-xs text-sm">Upload your PDF ticket or point the camera at the QR code. AI will handle the rest.</p>
+      <p className="text-slate-400 mb-10 max-w-xs text-center text-sm">Upload your ticket image or point the camera at the QR code. AI will handle the rest.</p>
       
-      <button className="w-full bg-[#E3000F] hover:bg-[#FF3333] text-white font-bold py-4 rounded-2xl shadow-[0_10px_30px_rgba(227,0,15,0.3)] flex justify-center items-center mb-4 transition-all">
-        <PlusCircle className="mr-2" size={20} /> UPLOAD TICKET (PDF)
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileUpload} 
+        accept="image/*" 
+        className="hidden" 
+      />
+
+      <button 
+        onClick={() => fileInputRef.current?.click()} 
+        disabled={isUploading}
+        className="w-full bg-[#E3000F] hover:bg-[#FF3333] text-white font-bold py-4 rounded-2xl shadow-[0_10px_30px_rgba(227,0,15,0.3)] flex justify-center items-center mb-4 transition-all disabled:opacity-50"
+      >
+        {isUploading ? "SCANNING..." : <><PlusCircle className="mr-2" size={20} /> UPLOAD TICKET (IMAGE)</>}
       </button>
-      <button className="w-full bg-[#181E29] text-white font-bold py-4 rounded-2xl border border-slate-700 hover:bg-[#131921] transition-all flex justify-center items-center">
+      <button 
+        onClick={() => fileInputRef.current?.click()} 
+        disabled={isUploading}
+        className="w-full bg-[#181E29] text-white font-bold py-4 rounded-2xl border border-slate-700 hover:bg-[#131921] transition-all flex justify-center items-center disabled:opacity-50"
+      >
         SCAN QR CODE
       </button>
     </div>

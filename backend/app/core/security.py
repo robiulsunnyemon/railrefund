@@ -18,7 +18,8 @@ security = HTTPBearer()
 def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Security(security)):
     token = credentials.credentials
     try:
-        decoded_token = auth.verify_id_token(token)
+        # Allow up to 60 seconds of clock skew between the client/Firebase and the local server
+        decoded_token = auth.verify_id_token(token, clock_skew_seconds=60)
         return decoded_token
     except Exception as e:
         print(f"Firebase token verification failed: {e}")
