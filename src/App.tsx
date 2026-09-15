@@ -10,6 +10,7 @@ export default function RailRefundPremium() {
   const [agreed, setAgreed] = useState(false);
   const [claimFilter, setClaimFilter] = useState('ALL');
   const [userData, setUserData] = useState<any>(null);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -392,13 +393,15 @@ export default function RailRefundPremium() {
         disabled={!agreed}
         className={`w-full font-bold py-4 rounded-2xl transition-all mt-auto ${agreed ? 'bg-white text-black' : 'bg-slate-800 text-slate-500'}`}
       >
-        Complete Setup
+                Complete Setup
       </button>
     </div>
   );
 
-  // 5. Ticket Details Screen (NEW)
-  const renderTicketDetails = () => (
+  // 5. Ticket Details Screen
+  const renderTicketDetails = () => {
+    if (!selectedTicket) return null;
+    return (
     <div className="h-full flex flex-col animate-fade-in pb-10 bg-[#0A0D12]">
       {/* Header Area */}
       <div className="p-6 bg-[#131921] border-b border-slate-800">
@@ -407,26 +410,32 @@ export default function RailRefundPremium() {
         </button>
         <div className="flex justify-between items-end">
           <div>
-            <h2 className="text-2xl font-black text-white">ICE 704</h2>
-            <p className="text-slate-400 text-sm">Berlin Hbf → Munich Hbf</p>
+            <h2 className="text-2xl font-black text-white">{selectedTicket.train_no}</h2>
+            <p className="text-slate-400 text-sm">{selectedTicket.departure_station} → {selectedTicket.arrival_station}</p>
           </div>
-          <span className="text-xs font-bold text-[#E3000F] bg-[#E3000F]/10 border border-[#E3000F]/30 px-3 py-1 rounded-full">+ 65 MINS LATE</span>
+          <span className={`text-xs font-bold border px-3 py-1 rounded-full uppercase ${selectedTicket.status === 'SETTLED' ? 'text-green-500 border-green-500/30 bg-green-500/10' : 'text-[#00E5FF] bg-[#00E5FF]/10 border-[#00E5FF]/30'}`}>{selectedTicket.status}</span>
         </div>
       </div>
 
       <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
-        {/* Refund Status Card */}
+        {/* Basic Details Card */}
         <div className="bg-gradient-to-br from-[#181E29] to-[#131921] border border-slate-700 rounded-2xl p-5 mb-8 shadow-lg">
-          <p className="text-[10px] text-slate-400 font-mono mb-1">EXPECTED REFUND (25%)</p>
-          <h3 className="text-3xl font-bold text-white mb-4">€ 15.50</h3>
+          <p className="text-[10px] text-slate-400 font-mono mb-1">PNR / BOOKING CODE</p>
+          <h3 className="text-xl font-bold text-white mb-4">{selectedTicket.pnr}</h3>
           
-          <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-            <div className="bg-[#FF9900] w-1/2 h-full rounded-full animate-pulse"></div>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <p className="text-[10px] text-slate-500 font-mono">DATE</p>
+              <p className="text-sm font-bold text-white">{selectedTicket.date}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-500 font-mono">DEPARTURE</p>
+              <p className="text-sm font-bold text-white">{selectedTicket.departure_time}</p>
+            </div>
           </div>
-          <p className="text-[10px] text-[#FF9900] font-mono mt-2 text-right">PROCESSING BY DB</p>
         </div>
 
-        <h3 className="text-sm font-bold text-white mb-6 font-mono tracking-wider uppercase">Claim Timeline</h3>
+        <h3 className="text-sm font-bold text-white mb-6 font-mono tracking-wider uppercase">Tracking Timeline</h3>
         
         {/* Timeline Steps */}
         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-700 before:to-transparent">
@@ -437,43 +446,25 @@ export default function RailRefundPremium() {
             </div>
             <div className="ml-4">
               <h4 className="text-sm font-bold text-white">Ticket Uploaded</h4>
-              <p className="text-[10px] text-slate-500 font-mono">12 Aug, 10:00 AM</p>
+              <p className="text-[10px] text-slate-500 font-mono">Scan complete</p>
             </div>
           </div>
 
           <div className="relative flex items-center">
-            <div className="h-10 w-10 rounded-full bg-[#131921] border-2 border-green-500 flex items-center justify-center z-10 shrink-0">
-              <Clock size={16} className="text-green-500" />
+            <div className={`h-10 w-10 rounded-full bg-[#131921] border-2 flex items-center justify-center z-10 shrink-0 ${selectedTicket.status === 'TRACKING' ? 'border-[#00E5FF]' : 'border-green-500'}`}>
+              <Clock size={16} className={selectedTicket.status === 'TRACKING' ? 'text-[#00E5FF]' : 'text-green-500'} />
             </div>
             <div className="ml-4">
-              <h4 className="text-sm font-bold text-white">Delay Detected</h4>
-              <p className="text-[10px] text-slate-500 font-mono">14 Aug, 15:35 PM</p>
+              <h4 className={`text-sm font-bold ${selectedTicket.status === 'TRACKING' ? 'text-[#00E5FF]' : 'text-white'}`}>Active Monitoring</h4>
+              <p className="text-[10px] text-slate-500 font-mono">Checking DB for delays</p>
             </div>
           </div>
 
-          <div className="relative flex items-center">
-            <div className="h-10 w-10 rounded-full bg-[#181E29] border-2 border-[#FF9900] flex items-center justify-center z-10 shrink-0 shadow-[0_0_10px_rgba(255,153,0,0.3)]">
-              <FileText size={16} className="text-[#FF9900]" />
-            </div>
-            <div className="ml-4">
-              <h4 className="text-sm font-bold text-white">Claim Filed to DB</h4>
-              <p className="text-[10px] text-slate-400">Automated form submitted.</p>
-            </div>
-          </div>
-
-          <div className="relative flex items-center opacity-40">
-            <div className="h-10 w-10 rounded-full bg-[#131921] border-2 border-slate-700 flex items-center justify-center z-10 shrink-0">
-              <CreditCard size={16} className="text-slate-500" />
-            </div>
-            <div className="ml-4">
-              <h4 className="text-sm font-bold text-white">Refund Sent</h4>
-              <p className="text-[10px] text-slate-500">Awaiting DB processing...</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   // 6. Home / Hub Screen
   const renderHome = () => {
@@ -522,7 +513,7 @@ export default function RailRefundPremium() {
           {activeTrackings.map((item) => (
             <div 
               key={item.id}
-              onClick={() => navigate('ticket-details')}
+              onClick={() => { setSelectedTicket(item); navigate('ticket-details'); }}
               className="bg-[#181E29] rounded-2xl p-4 border border-slate-800 shadow-lg flex items-center cursor-pointer hover:border-slate-500 transition-colors"
             >
               <div className="bg-[#131921] p-3 rounded-xl border border-slate-700 mr-4 shrink-0">
@@ -643,7 +634,7 @@ export default function RailRefundPremium() {
           {filteredClaims.map((claim) => (
             <div 
               key={claim.id}
-              onClick={() => navigate('ticket-details')} 
+              onClick={() => { setSelectedTicket(claim); navigate('ticket-details'); }} 
               className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 flex items-center cursor-pointer hover:border-slate-600 transition-colors"
             >
               <div className={`p-2 rounded-lg border mr-4 shrink-0 ${claim.status === 'SETTLED' ? 'bg-green-500/10 border-green-500/20' : 'bg-[#FF9900]/10 border-[#FF9900]/20'}`}>
