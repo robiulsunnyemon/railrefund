@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Navigation, History, ShieldCheck, Euro, Zap, Sparkles, Check, ArrowLeft, Menu, PlusCircle, Train, ScanLine, Ticket, CreditCard, ChevronRight, CheckCircle2, Clock, Map, Phone, Loader2, ArrowRight, Smartphone, FileText, Mail, User, Home } from 'lucide-react';
+import { ShieldCheck, Zap, Check, ArrowLeft, PlusCircle, Train, ScanLine, CreditCard, ChevronRight, CheckCircle2, Clock, Loader2, ArrowRight, User, Home } from 'lucide-react';
 import { auth, googleProvider } from './firebase';
 import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 
