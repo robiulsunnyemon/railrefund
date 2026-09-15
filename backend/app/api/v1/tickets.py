@@ -34,11 +34,13 @@ async def scan_ticket(
     new_ticket = {
         "id": ticket_id,
         "user_id": uid,
-        "pnr": parsed_data.get("pnr"),
-        "train_no": parsed_data.get("train_no"),
-        "departure_station": parsed_data.get("departure_station"),
-        "arrival_station": parsed_data.get("arrival_station"),
-        "departure_time": datetime.now(timezone.utc).isoformat(),
+        "pnr": parsed_data.get("pnr", "NICHT GEFUNDEN"),
+        "train_no": parsed_data.get("train_no", "NICHT GEFUNDEN"),
+        "date": parsed_data.get("date", "Unbekannt"),
+        "departure_station": parsed_data.get("departure_station", "Unbekannt"),
+        "arrival_station": parsed_data.get("arrival_station", "Unbekannt"),
+        "departure_time": parsed_data.get("departure_time", "Unbekannt"),
+        "arrival_time": parsed_data.get("arrival_time", "Unbekannt"),
         "status": "TRACKING",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -67,9 +69,11 @@ def create_ticket(ticket_data: TicketCreate, decoded_token: dict = Depends(verif
         "user_id": uid,
         "pnr": ticket_data.pnr.upper(),
         "train_no": "ICE 1004",  # Mocked
+        "date": "15.09.2026",
         "departure_station": "Berlin Hbf",  # Mocked
-        "arrival_station": "Munich Hbf",  # Mocked
-        "departure_time": datetime.now(timezone.utc).isoformat(),
+        "arrival_station": "München Hbf",  # Mocked
+        "departure_time": "10:30",
+        "arrival_time": "14:45",
         "status": "TRACKING", # Initial status
         "created_at": datetime.now(timezone.utc).isoformat()
     }

@@ -189,7 +189,7 @@ export default function RailRefundPremium() {
   const handleGoogleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      const idToken = await result.user.getIdToken();
+      const idToken = await result.user.getIdToken(true);
       console.log("Firebase ID Token generated.");
       
       // Send token to FastAPI backend
@@ -631,10 +631,14 @@ export default function RailRefundPremium() {
             <span>Legal & Privacy</span>
             <ChevronRight size={16} className="text-slate-500" />
           </button>
-          <button onClick={() => navigate('onboarding')} className="w-full flex items-center justify-between p-4 hover:bg-[#131921] transition-colors rounded-b-2xl text-[#E3000F] text-sm font-bold">
-            <span>Logout Session</span>
-            <ChevronRight size={16} className="text-[#E3000F]" />
-          </button>
+          <button onClick={async () => {
+          await auth.signOut();
+          setUserData(null);
+          navigate('onboarding');
+        }} className="w-full flex items-center justify-between p-4 hover:bg-[#131921] transition-colors rounded-b-2xl text-[#E3000F] text-sm font-bold">
+          <span>Logout Session</span>
+          <ChevronRight size={16} className="text-[#E3000F]" />
+        </button>
         </div>
       </div>
     );

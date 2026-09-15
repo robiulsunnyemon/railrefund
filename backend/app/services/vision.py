@@ -52,30 +52,69 @@ async def extract_ticket_data_from_image(image_bytes: bytes) -> dict:
     full_text = text_annotations[0].get("description", "")
     print("Extracted Ticket Text:\n", full_text)
     
-    # Very basic parsing logic for Deutsche Bahn tickets
+    # Advanced parsing logic for Deutsche Bahn tickets (in German)
     parsed_data = {
-        "pnr": "UNKNOWN",
-        "train_no": "ICE 0000",
-        "departure_station": "Unknown",
-        "arrival_station": "Unknown"
+        "pnr": "NICHT GEFUNDEN",
+        "train_no": "NICHT GEFUNDEN",
+        "departure_station": "Unbekannt",
+        "arrival_station": "Unbekannt",
+        "date": "Unbekannt",
+        "departure_time": "Unbekannt",
+        "arrival_time": "Unbekannt"
     }
     
-    # 1. Look for PNR (Auftragsnummer or Booking code - usually 6 uppercase letters/numbers)
-    # Often appears after "Auftragsnummer", "Auftrag", or "Buchungscode"
+    # 1. PNR (Auftragsnummer / Buchungscode) - 6 alphanumeric characters
     pnr_match = re.search(r'(?:Auftragsnummer|Auftrag|Buchungscode|PNR)[\s:]*([A-Z0-9]{6})\b', full_text, re.IGNORECASE)
     if pnr_match:
         parsed_data["pnr"] = pnr_match.group(1).upper()
     else:
-        # Fallback: Just find the first standalone 6-character uppercase alphanumeric string
         fallback_match = re.search(r'\b([A-Z0-9]{6})\b', full_text)
         if fallback_match:
             parsed_data["pnr"] = fallback_match.group(1).upper()
             
-    # 2. Look for Train Number (ICE, IC, EC, RE followed by numbers)
-    train_match = re.search(r'\b(ICE|IC|EC|RE|RB|S)\s*\d+\b', full_text)
+    # 2. Zugnummer (Train Number)
+    train_match = re.search(r'\b(ICE|IC|EC|RE|RB|S|NJ|RJ|RJX|TGV)\s*(\d+)\b', full_text)
     if train_match:
-        parsed_data["train_no"] = train_match.group(0)
+        parsed_data["train_no"] = f"{train_match.group(1)} {train_match.group(2)}"
         
-    # We could do more complex parsing for stations and dates, but this is a starting point.
+    # 3. Datum (Date) - Format: DD.MM.YYYY oder DD.MM.YY
+    date_match = re.search(r'\b(\d{2}\.\d{2}\.\d{2,4})\b', full_text)
+    if date_match:
+        parsed_data["date"] = date_match.group(1)
+
+    # 4. Zeiten (Times) - Format: HH:MM
+    # Wir suchen nach 'ab' (Abfahrt) und 'an' (Ankunft) oder nehmen einfach die ersten beiden Zeiten
+    times = re.findall(r'\b([0-2][0-9]:[0-5][0-9])\b', full_text)
     
+    ab_match = re.search(r'(?:ab|Abfahrt)[\s:]*([0-2][0-9]:[0-5][0-9])', full_text, re.IGNORECASE)
+    an_match = re.search(r'(?:an|Ankunft)[\s:]*([0-2][0-9]:[0-5][0-9])', full_text, re.IGNORECASE)
+    
+    if ab_match:
+        parsed_data["departure_time"] = ab_match.group(1)
+    elif len(times) > 0:
+        parsed_data["departure_time"] = times[0]
+        
+    if an_match:
+        parsed_data["arrival_time"] = an_match.group(1)
+    elif len(times) > 1:
+        parsed_data["arrival_time"] = times[1]
+
+    # 5. Bahnhöfe (Stations) - Erweiterte Suche
+    # Oft stehen Bahnhöfe nach "Von" und "Nach" oder "Halt" oder enden mit "Hbf"
+    von_match = re.search(r'(?:Von|von)[\s:]+([A-Za-zÄÖÜäöüß\s\-\(\)]+?(?:Hbf|Bf|Flughafen|Bahnhof)?)[\r\n]', full_text)
+    nach_match = re.search(r'(?:Nach|nach)[\s:]+([A-Za-zÄÖÜäöüß\s\-\(\)]+?(?:Hbf|Bf|Flughafen|Bahnhof)?)[\r\n]', full_text)
+    
+    if von_match:
+        parsed_data["departure_station"] = von_match.group(1).strip()
+    if nach_match:
+        parsed_data["arrival_station"] = nach_match.group(1).strip()
+        
+    # Fallback für Bahnhöfe: Suche nach Zeilen, die "Hbf" enthalten
+    if parsed_data["departure_station"] == "Unbekannt" or parsed_data["arrival_station"] == "Unbekannt":
+        hbf_lines = re.findall(r'^.*Hbf.*$', full_text, re.MULTILINE)
+        if len(hbf_lines) >= 1 and parsed_data["departure_station"] == "Unbekannt":
+            parsed_data["departure_station"] = hbf_lines[0].strip()
+        if len(hbf_lines) >= 2 and parsed_data["arrival_station"] == "Unbekannt":
+            parsed_data["arrival_station"] = hbf_lines[1].strip()
+
     return parsed_data
