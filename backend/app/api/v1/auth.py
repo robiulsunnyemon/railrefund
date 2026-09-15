@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.security import verify_firebase_token
 from app.db.database import get_db
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -29,7 +30,12 @@ def login_user(decoded_token: dict = Depends(verify_firebase_token)):
             "email": email,
             "full_name": name,
             "profile_pic": picture,
-            "balance": 0.0
+            "balance": 0.0,
+            "iban_no": "",
+            "status": "ACTIVE",
+            "subscription_plan": "FREE",
+            "subscription_status": "ACTIVE",
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
         user_ref.set(user_data)
     else:

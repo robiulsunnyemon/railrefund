@@ -10,9 +10,10 @@ import { auth, googleProvider } from './firebase';
 export default function RailRefundPremium() {
   const [currentScreen, setCurrentScreen] = useState('splash');
   const [onboardingStep, setOnboardingStep] = useState(0);
+  const [iban, setIban] = useState('');
   const [agreed, setAgreed] = useState(false);
-  const [iban, setIban] = useState('DE89 3704 0044 0532 0130 00');
   const [claimFilter, setClaimFilter] = useState('ALL');
+  const [userData, setUserData] = useState<any>(null);
 
   // Auto redirect from splash to onboarding
   useEffect(() => {
@@ -206,6 +207,11 @@ export default function RailRefundPremium() {
 
       const data = await response.json();
       console.log("Backend login success:", data);
+      
+      if (data.user) {
+        setUserData(data.user);
+        setIban(data.user.iban_no || '');
+      }
 
       navigate('paywall');
     } catch (error) {
@@ -231,6 +237,27 @@ export default function RailRefundPremium() {
       </div>
     </div>
   );
+
+  const handleSubscribe = async () => {
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      const response = await fetch('http://localhost:8000/api/v1/users/me/subscription', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ plan: 'PRO_AUTOMATOR' })
+      });
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUserData(updatedUser);
+        navigate('iban-setup');
+      }
+    } catch (error) {
+      console.error("Subscription failed", error);
+    }
+  };
 
   // 3. Paywall / Subscription Screen
   const renderPaywall = () => (
@@ -265,12 +292,33 @@ export default function RailRefundPremium() {
         </div>
       </div>
       
-      <button onClick={() => navigate('iban-setup')} className="w-full bg-[#E3000F] text-white font-bold py-4 rounded-2xl shadow-[0_10px_30px_rgba(227,0,15,0.4)] mt-auto relative z-10">
+      <button onClick={handleSubscribe} className="w-full bg-[#E3000F] text-white font-bold py-4 rounded-2xl shadow-[0_10px_30px_rgba(227,0,15,0.4)] mt-auto relative z-10">
         Subscribe via Apple Pay
       </button>
       <p className="text-center text-[10px] text-slate-500 mt-4 relative z-10">Cancel anytime in your settings.</p>
     </div>
   );
+
+  const handleIbanSubmit = async () => {
+    try {
+      const idToken = await auth.currentUser?.getIdToken();
+      const response = await fetch('http://localhost:8000/api/v1/users/me/iban', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ iban_no: iban })
+      });
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUserData(updatedUser);
+        navigate('home');
+      }
+    } catch (error) {
+      console.error("IBAN update failed", error);
+    }
+  };
 
   // 4. IBAN Setup & Legal
   const renderIbanSetup = () => (
@@ -288,6 +336,7 @@ export default function RailRefundPremium() {
           type="text" 
           value={iban}
           onChange={(e) => setIban(e.target.value)}
+          placeholder="DE89 3704 0044 0532 0130 00"
           className="w-full bg-transparent text-[#00E5FF] font-mono tracking-wider text-base outline-none"
         />
       </div>
@@ -305,7 +354,7 @@ export default function RailRefundPremium() {
       </div>
       
       <button 
-        onClick={() => navigate('home')}
+        onClick={handleIbanSubmit}
         disabled={!agreed}
         className={`w-full font-bold py-4 rounded-2xl transition-all mt-auto ${agreed ? 'bg-white text-black' : 'bg-slate-800 text-slate-500'}`}
       >
@@ -400,10 +449,10 @@ export default function RailRefundPremium() {
         <div className="flex justify-between items-center mb-6 mt-2">
           <div>
             <p className="text-xs text-slate-400 font-mono tracking-wider">WELCOME BACK</p>
-            <h1 className="text-2xl font-bold text-white font-display">Fahim</h1>
+            <h1 className="text-2xl font-bold text-white font-display">{userData?.full_name?.split(' ')[0] || 'User'}</h1>
           </div>
           <img 
-            src={`${import.meta.env.BASE_URL}logo.png`} 
+            src={userData?.profile_pic || `${import.meta.env.BASE_URL}logo.png`} 
             alt="Profile" 
             className="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(227,0,15,0.4)] object-cover" 
           />
@@ -417,7 +466,7 @@ export default function RailRefundPremium() {
               <ShieldCheck size={14} className="mr-2 text-[#E3000F]" />
               Total Recovered
             </p>
-            <h2 className="text-5xl font-extrabold text-white mb-2 tracking-tight">€ 145<span className="text-slate-500 text-3xl">.50</span></h2>
+            <h2 className="text-5xl font-extrabold text-white mb-2 tracking-tight">€ {userData?.balance?.toFixed(2).split('.')[0] || '0'}<span className="text-slate-500 text-3xl">.{userData?.balance?.toFixed(2).split('.')[1] || '00'}</span></h2>
             <p className="text-[10px] text-slate-500 font-mono">ALL PAYMENTS DIRECT TO YOUR IBAN</p>
           </div>
         </div>
@@ -532,55 +581,64 @@ export default function RailRefundPremium() {
   };
 
   // 9. Profile Screen
-  const renderProfile = () => (
-    <div className="p-6 pb-24 h-full overflow-y-auto no-scrollbar animate-fade-in">
-      <h2 className="text-xl font-bold text-white mb-6 font-mono uppercase tracking-wider mt-4">System Config</h2>
-      
-      {/* সাবস্ক্রিপশন স্ট্যাটাস */}
-      <div className="bg-gradient-to-r from-[#131921] to-[#181E29] rounded-2xl p-6 border border-[#E3000F]/30 mb-6 flex justify-between items-center relative overflow-hidden">
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#E3000F]/10 to-transparent"></div>
-        <div className="relative z-10">
-          <p className="text-[10px] text-slate-400 font-mono mb-1">SUBSCRIPTION LAYER</p>
-          <h3 className="text-lg font-bold text-white">Pro Automator</h3>
-        </div>
-        <span className="bg-green-500/20 text-green-400 border border-green-500/30 text-[10px] px-2 py-1 rounded font-mono font-bold relative z-10">
-          ACTIVE
-        </span>
-      </div>
-
-      {/* IBAN সেটআপ */}
-      <div className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <CreditCard className="text-slate-400 mr-2" size={18} />
-            <h3 className="font-bold text-white text-sm">Payout IBAN</h3>
-          </div>
-          <ShieldCheck className="text-green-500" size={16} />
-        </div>
+  const renderProfile = () => {
+    const planName = userData?.subscription_plan === 'PRO_AUTOMATOR' ? 'Pro Automator' : 'Free Basic';
+    const planStatus = userData?.subscription_status || 'ACTIVE';
+    
+    return (
+      <div className="p-6 pb-24 h-full overflow-y-auto no-scrollbar animate-fade-in">
+        <h2 className="text-xl font-bold text-white mb-6 font-mono uppercase tracking-wider mt-4">System Config</h2>
         
-        <div className="bg-[#0A0D12] border border-slate-700/50 rounded-xl p-4 flex items-center justify-between group focus-within:border-[#E3000F]/50 transition-colors">
-          <input 
-            type="text" 
-            value={iban}
-            onChange={(e) => setIban(e.target.value)}
-            className="bg-transparent text-[#00E5FF] font-mono tracking-[0.1em] text-xs outline-none w-full"
-          />
+        {/* সাবস্ক্রিপশন স্ট্যাটাস */}
+        <div className="bg-gradient-to-r from-[#131921] to-[#181E29] rounded-2xl p-6 border border-[#E3000F]/30 mb-6 flex justify-between items-center relative overflow-hidden">
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#E3000F]/10 to-transparent"></div>
+          <div className="relative z-10">
+            <p className="text-[10px] text-slate-400 font-mono mb-1">SUBSCRIPTION LAYER</p>
+            <h3 className="text-lg font-bold text-white">{planName}</h3>
+          </div>
+          <span className={`border text-[10px] px-2 py-1 rounded font-mono font-bold relative z-10 ${planStatus === 'ACTIVE' ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
+            {planStatus}
+          </span>
+        </div>
+
+        {/* IBAN সেটআপ */}
+        <div className="bg-[#181E29] rounded-2xl p-5 border border-slate-800 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <CreditCard className="text-slate-400 mr-2" size={18} />
+              <h3 className="font-bold text-white text-sm">Payout IBAN</h3>
+            </div>
+            <ShieldCheck className="text-green-500" size={16} />
+          </div>
+          
+          <div className="bg-[#0A0D12] border border-slate-700/50 rounded-xl p-4 flex items-center justify-between group focus-within:border-[#E3000F]/50 transition-colors">
+            <input 
+              type="text" 
+              value={iban}
+              onChange={(e) => setIban(e.target.value)}
+              placeholder="DE89 3704 ..."
+              className="bg-transparent text-[#00E5FF] font-mono tracking-[0.1em] text-xs outline-none w-full"
+            />
+            <button onClick={handleIbanSubmit} className="text-[#E3000F] font-bold text-xs ml-2 hover:text-[#FF3333]">
+              SAVE
+            </button>
+          </div>
+        </div>
+
+        {/* Other Menu */}
+        <div className="bg-[#181E29] rounded-2xl border border-slate-800 divide-y divide-slate-800">
+          <button className="w-full flex items-center justify-between p-4 hover:bg-[#131921] transition-colors rounded-t-2xl text-slate-300 text-sm">
+            <span>Legal & Privacy</span>
+            <ChevronRight size={16} className="text-slate-500" />
+          </button>
+          <button onClick={() => navigate('onboarding')} className="w-full flex items-center justify-between p-4 hover:bg-[#131921] transition-colors rounded-b-2xl text-[#E3000F] text-sm font-bold">
+            <span>Logout Session</span>
+            <ChevronRight size={16} className="text-[#E3000F]" />
+          </button>
         </div>
       </div>
-
-      {/* Other Menu */}
-      <div className="bg-[#181E29] rounded-2xl border border-slate-800 divide-y divide-slate-800">
-        <button className="w-full flex items-center justify-between p-4 hover:bg-[#131921] transition-colors rounded-t-2xl text-slate-300 text-sm">
-          <span>Legal & Privacy</span>
-          <ChevronRight size={16} className="text-slate-500" />
-        </button>
-        <button onClick={() => navigate('onboarding')} className="w-full flex items-center justify-between p-4 hover:bg-[#131921] transition-colors rounded-b-2xl text-[#E3000F] text-sm font-bold">
-          <span>Logout Session</span>
-          <ChevronRight size={16} className="text-[#E3000F]" />
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Main Render Switcher
   const renderCurrentScreen = () => {
