@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Navigation, History, ShieldCheck, Euro, Zap, Sparkles, Check, ArrowLeft, Menu, PlusCircle, Train, ScanLine, Ticket, CreditCard, ChevronRight, CheckCircle2, Clock, Map, Phone } from 'lucide-react';
+import { Search, MapPin, Navigation, History, ShieldCheck, Euro, Zap, Sparkles, Check, ArrowLeft, Menu, PlusCircle, Train, ScanLine, Ticket, CreditCard, ChevronRight, CheckCircle2, Clock, Map, Phone, Loader2, ArrowRight, Smartphone, FileText, Mail, User, Home } from 'lucide-react';
 import { auth, googleProvider } from './firebase';
 import { signInWithPopup } from 'firebase/auth';
 
@@ -111,23 +111,30 @@ export default function RailRefundPremium() {
     }
   ];
 
-  const activeTrackings = Array.from({ length: 20 }).map((_, i) => ({
-    id: `active-${i}`,
-    train: `ICE ${700 + i}`,
-    route: i % 2 === 0 ? "Berlin - Munich" : "Hamburg - Frankfurt",
-    dep: `${10 + (i % 12)}:${i % 6}0`,
-    platform: (i % 10) + 1,
-    delay: 30 + (i * 5) % 90
-  }));
+  const [tickets, setTickets] = useState<any[]>([]);
 
-  const completedClaims = Array.from({ length: 20 }).map((_, i) => ({
-    id: `claim-${i}`,
-    train: i % 3 === 0 ? `IC ${2000 + i}` : `ICE ${100 + i}`,
-    claimId: `#REF-${4490 + i}`,
-    amount: (15 + (i * 2.5) % 50).toFixed(2),
-    status: i % 4 === 0 ? "PROCESSING" : "SETTLED"
-  }));
-
+  useEffect(() => {
+    const fetchTickets = async () => {
+      if (userData && (currentScreen === 'home' || currentScreen === 'claims')) {
+        try {
+          const idToken = await auth.currentUser?.getIdToken();
+          if (!idToken) return;
+          const response = await fetch('http://localhost:8000/api/v1/tickets', {
+            headers: {
+              'Authorization': `Bearer ${idToken}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setTickets(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch tickets", error);
+        }
+      }
+    };
+    fetchTickets();
+  }, [userData, currentScreen]);
   // 1. Onboarding Screen
   const renderOnboarding = () => {
     const slide = onboardingSlides[onboardingStep];
@@ -440,67 +447,74 @@ export default function RailRefundPremium() {
   );
 
   // 6. Home / Hub Screen
-  const renderHome = () => (
-    <div className="flex flex-col h-full animate-fade-in">
-      {/* Header */}
-      <div className="p-6 pb-2 shrink-0">
-        <div className="flex justify-between items-center mb-6 mt-2">
-          <div>
-            <p className="text-xs text-slate-400 font-mono tracking-wider">WELCOME BACK</p>
-            <h1 className="text-2xl font-bold text-white font-display">{userData?.full_name?.split(' ')[0] || 'User'}</h1>
+  const renderHome = () => {
+    const activeTrackings = tickets.filter(t => t.status === 'TRACKING');
+    
+    return (
+      <div className="flex flex-col h-full animate-fade-in">
+        {/* Header */}
+        <div className="p-6 pb-2 shrink-0">
+          <div className="flex justify-between items-center mb-6 mt-2">
+            <div>
+              <p className="text-xs text-slate-400 font-mono tracking-wider">WELCOME BACK</p>
+              <h1 className="text-2xl font-bold text-white font-display">{userData?.full_name?.split(' ')[0] || 'User'}</h1>
+            </div>
+            <img 
+              src={userData?.profile_pic || `${import.meta.env.BASE_URL}logo.png`} 
+              alt="Profile" 
+              className="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(227,0,15,0.4)] object-cover" 
+            />
           </div>
-          <img 
-            src={userData?.profile_pic || `${import.meta.env.BASE_URL}logo.png`} 
-            alt="Profile" 
-            className="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(227,0,15,0.4)] object-cover" 
-          />
+          
+          {/* ব্যালেন্স কার্ড */}
+          <div className="relative overflow-hidden bg-[#131921] border border-[#E3000F]/50 rounded-[28px] p-7 shadow-[0_0_30px_rgba(227,0,15,0.1)] mb-6">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#E3000F] rounded-full blur-[70px] opacity-40"></div>
+            <div className="relative z-10">
+              <p className="text-slate-400 text-xs font-mono font-bold mb-2 uppercase tracking-widest flex items-center">
+                <ShieldCheck size={14} className="mr-2 text-[#E3000F]" />
+                Total Recovered
+              </p>
+              <h2 className="text-5xl font-extrabold text-white mb-2 tracking-tight">€ {userData?.balance?.toFixed(2).split('.')[0] || '0'}<span className="text-slate-500 text-3xl">.{userData?.balance?.toFixed(2).split('.')[1] || '00'}</span></h2>
+              <p className="text-[10px] text-slate-500 font-mono">ALL PAYMENTS DIRECT TO YOUR IBAN</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-slate-300 font-mono tracking-wider uppercase">Active Tracking</h3>
+            <span className="text-[10px] bg-[#E3000F]/20 text-[#E3000F] border border-[#E3000F]/30 px-2 py-0.5 rounded uppercase font-mono font-bold animate-pulse">Live</span>
+          </div>
         </div>
         
-        {/* ব্যালেন্স কার্ড */}
-        <div className="relative overflow-hidden bg-[#131921] border border-[#E3000F]/50 rounded-[28px] p-7 shadow-[0_0_30px_rgba(227,0,15,0.1)] mb-6">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#E3000F] rounded-full blur-[70px] opacity-40"></div>
-          <div className="relative z-10">
-            <p className="text-slate-400 text-xs font-mono font-bold mb-2 uppercase tracking-widest flex items-center">
-              <ShieldCheck size={14} className="mr-2 text-[#E3000F]" />
-              Total Recovered
-            </p>
-            <h2 className="text-5xl font-extrabold text-white mb-2 tracking-tight">€ {userData?.balance?.toFixed(2).split('.')[0] || '0'}<span className="text-slate-500 text-3xl">.{userData?.balance?.toFixed(2).split('.')[1] || '00'}</span></h2>
-            <p className="text-[10px] text-slate-500 font-mono">ALL PAYMENTS DIRECT TO YOUR IBAN</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-slate-300 font-mono tracking-wider uppercase">Active Tracking</h3>
-          <span className="text-[10px] bg-[#E3000F]/20 text-[#E3000F] border border-[#E3000F]/30 px-2 py-0.5 rounded uppercase font-mono font-bold animate-pulse">Live</span>
+        {/* Scrollable List */}
+        <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-4 pb-28">
+          {activeTrackings.length === 0 && (
+            <div className="text-center text-slate-500 text-sm mt-10">No active tracking found. Scan a ticket to start.</div>
+          )}
+          {activeTrackings.map((item) => (
+            <div 
+              key={item.id}
+              onClick={() => navigate('ticket-details')}
+              className="bg-[#181E29] rounded-2xl p-4 border border-slate-800 shadow-lg flex items-center cursor-pointer hover:border-slate-500 transition-colors"
+            >
+              <div className="bg-[#131921] p-3 rounded-xl border border-slate-700 mr-4 shrink-0">
+                <Train className="text-white" size={24} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-white text-sm truncate">{item.train_no} <span className="text-slate-500 font-normal">{item.departure_station} - {item.arrival_station}</span></h4>
+                <p className="text-xs text-slate-400 font-mono mt-1">DEP: {item.departure_time} | DATE: {item.date}</p>
+              </div>
+              <div className="text-right flex flex-col items-end shrink-0 ml-2">
+                <ChevronRight size={16} className="text-slate-500 mb-1" />
+                <span className="text-[10px] font-bold border px-2 py-0.5 rounded-md tracking-wider text-[#00E5FF] border-[#00E5FF]/20 bg-[#00E5FF]/10 uppercase">
+                  {item.status}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-      
-      {/* Scrollable List */}
-      <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-4 pb-28">
-        {activeTrackings.map((item) => (
-          <div 
-            key={item.id}
-            onClick={() => navigate('ticket-details')}
-            className="bg-[#181E29] rounded-2xl p-4 border border-slate-800 shadow-lg flex items-center cursor-pointer hover:border-slate-500 transition-colors"
-          >
-            <div className="bg-[#131921] p-3 rounded-xl border border-slate-700 mr-4 shrink-0">
-              <Train className="text-white" size={24} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-white text-sm truncate">{item.train} <span className="text-slate-500 font-normal">{item.route}</span></h4>
-              <p className="text-xs text-slate-400 font-mono mt-1">DEP: {item.dep} | PLATFORM {item.platform}</p>
-            </div>
-            <div className="text-right flex flex-col items-end shrink-0 ml-2">
-              <ChevronRight size={16} className="text-slate-500 mb-1" />
-              <span className={`text-[10px] font-bold border px-2 py-0.5 rounded-md tracking-wider ${item.delay >= 60 ? 'text-[#E3000F] border-[#E3000F]/20 bg-[#E3000F]/10' : 'text-[#FF9900] border-[#FF9900]/20 bg-[#FF9900]/10'}`}>
-                +{item.delay}m
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  };
 
   // 7. Scan/Upload Screen
 
@@ -573,7 +587,7 @@ export default function RailRefundPremium() {
 
   // 8. Claims History
   const renderClaims = () => {
-    const filteredClaims = completedClaims.filter(c => claimFilter === 'ALL' || c.status === claimFilter);
+    const filteredClaims = tickets.filter(c => claimFilter === 'ALL' || c.status === claimFilter);
     return (
       <div className="flex flex-col h-full animate-fade-in">
         <div className="p-6 pb-2 shrink-0">
@@ -581,7 +595,7 @@ export default function RailRefundPremium() {
           
           {/* Filtering System */}
           <div className="flex space-x-2 mb-2">
-            {['ALL', 'PROCESSING', 'SETTLED'].map(filterOption => (
+            {['ALL', 'TRACKING', 'PROCESSING', 'SETTLED'].map(filterOption => (
               <button 
                 key={filterOption}
                 onClick={() => setClaimFilter(filterOption)}
@@ -594,6 +608,9 @@ export default function RailRefundPremium() {
         </div>
         
         <div className="px-6 flex-1 overflow-y-auto no-scrollbar space-y-3 pb-28">
+          {filteredClaims.length === 0 && (
+            <div className="text-center text-slate-500 text-sm mt-10">No tickets found in registry.</div>
+          )}
           {filteredClaims.map((claim) => (
             <div 
               key={claim.id}
@@ -602,20 +619,17 @@ export default function RailRefundPremium() {
             >
               <div className={`p-2 rounded-lg border mr-4 shrink-0 ${claim.status === 'SETTLED' ? 'bg-green-500/10 border-green-500/20' : 'bg-[#FF9900]/10 border-[#FF9900]/20'}`}>
                 {claim.status === 'SETTLED' ? (
-                  <CheckCircle className="text-green-500" size={20} />
+                  <CheckCircle2 className="text-green-500" size={20} />
                 ) : (
                   <Clock className="text-[#FF9900]" size={20} />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-white text-sm truncate">{claim.train}</h4>
-                <p className="text-[10px] text-slate-500 font-mono mt-1">CLAIM: {claim.claimId}</p>
+                <h4 className="font-bold text-white text-sm truncate">{claim.train_no}</h4>
+                <p className="text-[10px] text-slate-500 font-mono mt-1">PNR: {claim.pnr}</p>
               </div>
               <div className="text-right shrink-0 ml-2">
-                <h4 className={`font-bold ${claim.status === 'SETTLED' ? 'text-green-400' : 'text-white'}`}>
-                  {claim.status === 'SETTLED' ? '+' : ''} € {claim.amount}
-                </h4>
-                <p className={`text-[9px] font-mono mt-1 uppercase ${claim.status === 'SETTLED' ? 'text-slate-500' : 'text-[#FF9900]'}`}>
+                <p className={`text-[10px] font-mono mt-1 uppercase ${claim.status === 'SETTLED' ? 'text-slate-500' : 'text-[#FF9900]'}`}>
                   {claim.status}
                 </p>
               </div>
