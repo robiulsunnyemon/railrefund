@@ -7,11 +7,16 @@ from firebase_admin import credentials, auth
 cred_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "firebase-key.json")
 
 try:
-    cred = credentials.Certificate(cred_path)
+    firebase_env = os.environ.get("FIREBASE_CRED_JSON")
+    if firebase_env:
+        import json
+        cred_dict = json.loads(firebase_env)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 except Exception as e:
     print(f"Warning: Could not initialize Firebase Admin SDK. {e}")
-    pass
 
 security = HTTPBearer()
 
