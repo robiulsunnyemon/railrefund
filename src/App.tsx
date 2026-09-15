@@ -20,7 +20,7 @@ export default function RailRefundPremium() {
       if (firebaseUser) {
         try {
           const idToken = await firebaseUser.getIdToken();
-          const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+          const response = await fetch('https://refundboy.fastapicloud.dev/api/v1/auth/login', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${idToken}`,
@@ -149,7 +149,7 @@ export default function RailRefundPremium() {
         try {
           const idToken = await auth.currentUser?.getIdToken();
           if (!idToken) return;
-          const response = await fetch('http://localhost:8000/api/v1/tickets', {
+          const response = await fetch('https://refundboy.fastapicloud.dev/api/v1/tickets', {
             headers: {
               'Authorization': `Bearer ${idToken}`
             }
@@ -228,7 +228,7 @@ export default function RailRefundPremium() {
       console.log("Firebase ID Token generated.");
       
       // Send token to FastAPI backend
-      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+      const response = await fetch('https://refundboy.fastapicloud.dev/api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -276,7 +276,7 @@ export default function RailRefundPremium() {
   const handleSubscribe = async () => {
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch('http://localhost:8000/api/v1/users/me/subscription', {
+      const response = await fetch('https://refundboy.fastapicloud.dev/api/v1/users/me/subscription', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -337,7 +337,7 @@ export default function RailRefundPremium() {
   const handleIbanSubmit = async () => {
     try {
       const idToken = await auth.currentUser?.getIdToken();
-      const response = await fetch('http://localhost:8000/api/v1/users/me/iban', {
+      const response = await fetch('https://refundboy.fastapicloud.dev/api/v1/users/me/iban', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -548,7 +548,7 @@ export default function RailRefundPremium() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:8000/api/v1/tickets/scan', {
+      const response = await fetch('https://refundboy.fastapicloud.dev/api/v1/tickets/scan', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`
