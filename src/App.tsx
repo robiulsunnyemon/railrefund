@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Navigation, History, ShieldCheck, Euro, Zap, Sparkles, Check, ArrowLeft, Menu, PlusCircle, Train, ScanLine, Ticket, CreditCard, ChevronRight, CheckCircle2, Clock, Map, Phone, Loader2, ArrowRight, Smartphone, FileText, Mail, User, Home } from 'lucide-react';
 import { auth, googleProvider } from './firebase';
-import { signInWithPopup } from 'firebase/auth';
+import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 
 export default function RailRefundPremium() {
   const [currentScreen, setCurrentScreen] = useState('splash');
@@ -13,11 +13,40 @@ export default function RailRefundPremium() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Auto-login listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const idToken = await firebaseUser.getIdToken();
+          const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${idToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.user) {
+              setUserData(data.user);
+              setIban(data.user.iban_no || '');
+              setCurrentScreen(prev => (prev === 'splash' || prev === 'onboarding' || prev === 'auth' ? 'home' : prev));
+            }
+          }
+        } catch (error) {
+          console.error("Auto login failed", error);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   // Auto redirect from splash to onboarding
   useEffect(() => {
     if (currentScreen === 'splash') {
       const timer = setTimeout(() => {
-        setCurrentScreen('onboarding');
+        setCurrentScreen(prev => prev === 'splash' ? 'onboarding' : prev);
       }, 2500); // 2.5 seconds delay
       return () => clearTimeout(timer);
     }
